@@ -1,0 +1,61 @@
+name: Manual Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to create (e.g., v1.2.3)"
+        required: true
+        type: string
+      target:
+        description: "Commit SHA or ref for the tag"
+        required: false
+        default: ""
+        type: string
+      prerelease:
+        description: "Mark as prerelease"
+        required: false
+        default: false
+        type: boolean
+      notes:
+        description: "Release notes (optional; leave empty to auto-generate)"
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  tag-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve target ref
+        id: ref
+        run: |
+          if [ -n "${{ github.event.inputs.target }}" ]; then
+            echo "ref=${{ github.event.inputs.target }}" >> $GITHUB_OUTPUT
+          else
+            echo "ref=${GITHUB_SHA}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create and push tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Create or move the annotated tag to target ref
+          git tag -a "${{ github.event.inputs.tag }}" -m "${{ github.event.inputs.tag }}" "${{ steps.ref.outputs.ref }}" || true
+          git push --force origin "refs/tags/${{ github.event.inputs.tag }}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag }}
+          prerelease: ${{ github.event.inputs.prerelease }}
+          generate_release_notes: ${{ github.event.inputs.notes == '' }}
+          body: ${{ github.event.inputs.notes }}
+

@@ -66,6 +66,7 @@ Releases
 - Tag a version: `git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z`.
 - A GitHub Release is created automatically from tags via workflow.
 - Release notes are auto‑generated; edit on GitHub if needed.
+ - Or run from Actions UI: Manual Release workflow (enter tag, optional notes).
 
 License
 - MIT — see the LICENSE file for full text.
