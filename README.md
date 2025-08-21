@@ -1,3 +1,5 @@
+[![CI](https://github.com/pedromatosonv/epubsplit/actions/workflows/ci.yml/badge.svg)](https://github.com/pedromatosonv/epubsplit/actions/workflows/ci.yml)
+
 EPUBSplit — Split EPUBs by TOC
 
 Overview
