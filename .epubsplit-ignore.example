@@ -1,0 +1,15 @@
+# Example ignore rules (case-insensitive regex)
+# Lines starting with # and blank lines are ignored.
+
+^cover$
+^title\s*page$
+^table\s+of\s+contents$
+^contents$
+^copyright\s*page$
+^front\s*matter$
+^back\s*cover$
+^backcover$
+^foreword$
+^dedication$
+^acknowledg(e)?ments$
+^about\s+the\s+author$
