@@ -183,9 +183,8 @@ def load_ignore_file(path: Optional[str]) -> List[re.Pattern[str]]:
     if path and os.path.isfile(path):
         with open(path, "r", encoding="utf-8") as f:
             return compile_ignore_patterns(f.readlines())
-    default = ".epubsplit-ignore"
-    if os.path.isfile(default):
-        with open(default, "r", encoding="utf-8") as f:
+    if os.path.isfile(".splitpub-ignore"):
+        with open(".splitpub-ignore", "r", encoding="utf-8") as f:
             return compile_ignore_patterns(f.readlines())
     return []
 

@@ -21,14 +21,18 @@ except Exception:  # pragma: no cover - flat layout
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
-        prog="epubsplit",
+        prog="splitpub",
         description="Split an EPUB into per-TOC-entry EPUBs or check what would be split.",
     )
     p.add_argument("--mode", choices=["check", "split", "validate"], default="check", help="Operation mode")
     p.add_argument("--input", default="-", help="Path to EPUB or '-' for stdin (default)")
     p.add_argument("--out", default="-", help="Output directory or '-' to stream tar to stdout (split mode)")
     p.add_argument("--format", choices=["text", "json"], default="text", help="Output format for check mode")
-    p.add_argument("--ignore-file", default=None, help="Path to ignore patterns file (default: .epubsplit-ignore if present)")
+    p.add_argument(
+        "--ignore-file",
+        default=None,
+        help="Path to ignore patterns file (default: .splitpub-ignore if present)",
+    )
     p.add_argument(
         "--name-template",
         default="{index:02d} - {title}.epub",

@@ -3,14 +3,14 @@
 This repository contains a small CLI tool to split an EPUB into per‑chapter EPUBs. This guide is for AI/code assistants working on the project to implement changes safely and verify behavior end‑to‑end.
 
 ## Project Summary
-- CLI: `epubsplit` with modes `check`, `split`, and `validate`.
+- CLI: `splitpub` with modes `check`, `split`, and `validate`.
 - Input: EPUB file via `--input PATH` or stdin (`-`, default).
 - Output:
   - `check`: lists TOC entries (text or JSON) to stdout.
   - `split`: writes a tar stream of per‑chapter EPUBs to stdout (default) or files to a directory via `--out`.
   - `validate`: reads a tar (file or stdin) and reports sizes/ZIP validity of each entry.
 - TOC: Uses EPUB3 `nav` or EPUB2 `ncx`; splits at top‑level only.
-- Exclusions: No defaults. Optional ignore rules via `.epubsplit-ignore` or `--ignore-file` (case‑insensitive regexes, one per line).
+- Exclusions: No defaults. Optional ignore rules via `.splitpub-ignore` or `--ignore-file` (case‑insensitive regexes, one per line).
 
 ## Repo Layout (flat)
 - `core.py`: Core logic (EPUB parsing, filtering, splitting, validation).
@@ -19,7 +19,7 @@ This repository contains a small CLI tool to split an EPUB into per‑chapter EP
 - `Dockerfile`: Runtime image for streaming usage.
 - `Makefile`: Convenience targets for Docker build/run flows.
 - `README.md`: User documentation.
-- `.epubsplit-ignore.example`: Example ignore rules.
+- `.splitpub-ignore.example`: Example ignore rules.
 
 ## What To Preserve
 - Streaming I/O by default:
@@ -35,16 +35,16 @@ This repository contains a small CLI tool to split an EPUB into per‑chapter EP
   - Split to tar: `python3 cli.py --mode split --input book.epub > out.tar`
   - Validate tar: `python3 cli.py --mode validate --input out.tar`
 - Docker:
-  - Build: `docker build -t ourtool:latest .`
-  - Check: `docker run --rm -i ourtool:latest --mode check --format json < book.epub`
-  - Split to tar: `docker run --rm -i ourtool:latest --mode split < book.epub > out.tar`
-  - Validate tar from stdin: `docker run --rm -i ourtool:latest --mode validate --input - < out.tar`
-  - Split to directory: `docker run --rm -i -v "$PWD/out":/out ourtool:latest --mode split --out /out < book.epub`
+  - Build: `docker build -t splitpub:latest .`
+  - Check: `docker run --rm -i splitpub:latest --mode check --format json < book.epub`
+  - Split to tar: `docker run --rm -i splitpub:latest --mode split < book.epub > out.tar`
+  - Validate tar from stdin: `docker run --rm -i splitpub:latest --mode validate --input - < out.tar`
+  - Split to directory: `docker run --rm -i -v "$PWD/out":/out splitpub:latest --mode split --out /out < book.epub`
 - Makefile shortcuts:
   - `make build`
   - `make check IN=book.epub`
   - `make split-tar IN=book.epub`
-  - `make split-dir IN=book.epub OUTDIR=out IGNORE=.epubsplit-ignore`
+  - `make split-dir IN=book.epub OUTDIR=out IGNORE=.splitpub-ignore`
   - `make validate`
 
 ## Coding Guidelines

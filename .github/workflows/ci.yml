@@ -65,7 +65,7 @@ jobs:
 
       - name: Smoke test check (json with ignore)
         run: |
-          printf '2$\n' > .epubsplit-ignore
+          printf '2$\n' > .splitpub-ignore
           python cli.py --mode check --input sample.epub --format json
 
       - name: Smoke test split to tar
@@ -85,7 +85,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build image
-        run: docker build -t ourtool:latest .
+        run: docker build -t splitpub:latest .
 
       - name: Create sample EPUB
         run: |
@@ -128,21 +128,21 @@ jobs:
           PY
 
       - name: Docker check (JSON)
-        run: docker run --rm -i ourtool:latest --mode check --format json < sample.epub
+        run: docker run --rm -i splitpub:latest --mode check --format json < sample.epub
 
       - name: Docker split to tar
-        run: docker run --rm -i ourtool:latest --mode split < sample.epub > out.tar
+        run: docker run --rm -i splitpub:latest --mode split < sample.epub > out.tar
 
       - name: Docker validate tar from stdin
-        run: docker run --rm -i ourtool:latest --mode validate --input - < out.tar
+        run: docker run --rm -i splitpub:latest --mode validate --input - < out.tar
 
       - name: Docker split to directory with ignore
         run: |
           mkdir -p out
-          printf '2$\n' > .epubsplit-ignore
+          printf '2$\n' > .splitpub-ignore
           docker run --rm -i \
             -v "$PWD/out":/out \
             -v "$PWD":/work -w /work \
-            ourtool:latest --mode split --out /out --ignore-file /work/.epubsplit-ignore < sample.epub
+            splitpub:latest --mode split --out /out --ignore-file /work/.splitpub-ignore < sample.epub
           ls -l out
 

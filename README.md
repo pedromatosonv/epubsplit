@@ -1,6 +1,6 @@
-EPUBSplit — Split EPUBs by TOC
+SplitPub — Split EPUBs by TOC
 
-[![CI](https://github.com/pedromatosonv/epubsplit/actions/workflows/ci.yml/badge.svg)](https://github.com/pedromatosonv/epubsplit/actions/workflows/ci.yml)
+[![CI](https://github.com/pedromatosonv/splitpub/actions/workflows/ci.yml/badge.svg)](https://github.com/pedromatosonv/splitpub/actions/workflows/ci.yml)
 
 Purpose
 - Split an EPUB into per‑chapter EPUBs based on top‑level TOC entries.
@@ -8,16 +8,16 @@ Purpose
 
 Features
 - Top‑level TOC only (EPUB3 `nav` or EPUB2 `ncx`).
-- No default exclusions; optional ignore rules via `.epubsplit-ignore` or `--ignore-file`.
+- No default exclusions; optional ignore rules via `.splitpub-ignore` or `--ignore-file`.
 - Streaming I/O (no buffering entire tar in memory).
 - Simple, dependency‑free Python (stdlib only) and a minimal Docker image.
 
 Quick Start (Docker)
-- Build: `docker build -t ourtool:latest .`
-- Check (JSON): `docker run --rm -i ourtool:latest --mode check --format json < book.epub`
-- Split to tar: `docker run --rm -i ourtool:latest --mode split < book.epub > out.tar`
-- Validate tar from stdin: `docker run --rm -i ourtool:latest --mode validate --input - < out.tar`
-- Split to directory: `docker run --rm -i -v "$PWD/out":/out ourtool:latest --mode split --out /out < book.epub`
+- Build: `docker build -t splitpub:latest .`
+- Check (JSON): `docker run --rm -i splitpub:latest --mode check --format json < book.epub`
+- Split to tar: `docker run --rm -i splitpub:latest --mode split < book.epub > out.tar`
+- Validate tar from stdin: `docker run --rm -i splitpub:latest --mode validate --input - < out.tar`
+- Split to directory: `docker run --rm -i -v "$PWD/out":/out splitpub:latest --mode split --out /out < book.epub`
 
 Local Usage
 - Check TOC: `python3 cli.py --mode check --input book.epub --format text`
@@ -31,7 +31,7 @@ CLI Options
 - `--input PATH|-`: EPUB path or `-` for stdin (default).
 - `--out DIR|-`: Output directory for split mode; `-` (default) streams a tar to stdout.
 - `--format {text,json}`: Output format for check mode. Default: `text`.
-- `--ignore-file PATH`: Path to ignore patterns file; if omitted, uses `.epubsplit-ignore` when present.
+- `--ignore-file PATH`: Path to ignore patterns file; if omitted, uses `.splitpub-ignore` when present.
 - `--name-template TEMPLATE`: Output filename template; default: `{index:02d} - {title}.epub`.
 
 Ignore Rules
@@ -46,7 +46,7 @@ Makefile Shortcuts
 - `make build`
 - `make check IN=book.epub`
 - `make split-tar IN=book.epub`
-- `make split-dir IN=book.epub OUTDIR=out IGNORE=.epubsplit-ignore`
+- `make split-dir IN=book.epub OUTDIR=out IGNORE=.splitpub-ignore`
 - `make validate`
 
 Notes

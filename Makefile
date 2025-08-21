@@ -1,7 +1,7 @@
-IMAGE ?= ourtool:latest
+IMAGE ?= splitpub:latest
 IN ?= book.epub
 OUTDIR ?= outdir
-IGNORE ?= .epubsplit-ignore
+IGNORE ?= .splitpub-ignore
 
 .PHONY: help build check split-tar split-dir validate clean
 
