@@ -4,6 +4,7 @@ OUTDIR ?= outdir
 IGNORE ?= .splitpub-ignore
 
 .PHONY: help build check split-tar split-dir validate clean
+.DEFAULT_GOAL := help
 
 help:
 	@echo "Targets:"
@@ -27,8 +28,8 @@ split-tar: build
 split-dir: build
 	mkdir -p $(OUTDIR)
 	docker run --rm -i \
-	  -v "$(PWD)":/work -w /work \
-	  -v "$(PWD)/$(OUTDIR)":/out \
+	  -v "$(CURDIR)":/work -w /work \
+	  -v "$(CURDIR)/$(OUTDIR)":/out \
 	  $(IMAGE) --mode split --out /out --ignore-file /work/$(IGNORE) < $(IN)
 	@echo "Wrote EPUBs to $(OUTDIR)"
 
