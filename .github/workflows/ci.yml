@@ -1,0 +1,148 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  py:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Compile check
+        run: python -m py_compile cli.py core.py __init__.py
+
+      - name: Create sample EPUB
+        run: |
+          python - <<'PY'
+          import zipfile
+          from zipfile import ZipInfo, ZIP_STORED
+          zf = zipfile.ZipFile('sample.epub','w')
+          zi = ZipInfo('mimetype'); zi.compress_type = ZIP_STORED
+          zf.writestr(zi, 'application/epub+zip')
+          zf.writestr('META-INF/container.xml',
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">'
+            '<rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles>'
+            '</container>')
+          zf.writestr('OEBPS/nav.xhtml', '''<?xml version="1.0" encoding="utf-8"?>
+          <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+            <head><title>TOC</title></head>
+            <body>
+              <nav epub:type="toc"><ol>
+                <li><a href="ch1.xhtml">Chapter 1</a></li>
+                <li><a href="ch2.xhtml">Chapter 2</a></li>
+              </ol></nav>
+            </body>
+          </html>''')
+          zf.writestr('OEBPS/ch1.xhtml', '<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Ch1</title></head><body><h1>One</h1></body></html>')
+          zf.writestr('OEBPS/ch2.xhtml', '<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Ch2</title></head><body><h1>Two</h1></body></html>')
+          zf.writestr('OEBPS/content.opf', '''<?xml version="1.0" encoding="UTF-8"?>
+          <package version="3.0" xmlns="http://www.idpf.org/2007/opf" unique-identifier="id">
+            <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+              <dc:title>Demo Book</dc:title><dc:language>en</dc:language>
+            </metadata>
+            <manifest>
+              <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>
+              <item id="ch1" href="ch1.xhtml" media-type="application/xhtml+xml"/>
+              <item id="ch2" href="ch2.xhtml" media-type="application/xhtml+xml"/>
+            </manifest>
+            <spine><itemref idref="ch1"/><itemref idref="ch2"/></spine>
+          </package>''')
+          zf.close()
+          PY
+
+      - name: Smoke test check (text)
+        run: python cli.py --mode check --input sample.epub --format text
+
+      - name: Smoke test check (json with ignore)
+        run: |
+          printf '2$\n' > .epubsplit-ignore
+          python cli.py --mode check --input sample.epub --format json
+
+      - name: Smoke test split to tar
+        run: python cli.py --mode split --input sample.epub > out.tar
+
+      - name: Smoke test validate tar file
+        run: python cli.py --mode validate --input out.tar
+
+      - name: Smoke test validate stdin
+        run: cat out.tar | python cli.py --mode validate --input -
+
+  docker:
+    name: Docker flows
+    runs-on: ubuntu-latest
+    needs: py
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t ourtool:latest .
+
+      - name: Create sample EPUB
+        run: |
+          python - <<'PY'
+          import zipfile
+          from zipfile import ZipInfo, ZIP_STORED
+          zf = zipfile.ZipFile('sample.epub','w')
+          zi = ZipInfo('mimetype'); zi.compress_type = ZIP_STORED
+          zf.writestr(zi, 'application/epub+zip')
+          zf.writestr('META-INF/container.xml',
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">'
+            '<rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles>'
+            '</container>')
+          zf.writestr('OEBPS/nav.xhtml', '''<?xml version="1.0" encoding="utf-8"?>
+          <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+            <head><title>TOC</title></head>
+            <body>
+              <nav epub:type="toc"><ol>
+                <li><a href="ch1.xhtml">Chapter 1</a></li>
+                <li><a href="ch2.xhtml">Chapter 2</a></li>
+              </ol></nav>
+            </body>
+          </html>''')
+          zf.writestr('OEBPS/ch1.xhtml', '<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Ch1</title></head><body><h1>One</h1></body></html>')
+          zf.writestr('OEBPS/ch2.xhtml', '<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Ch2</title></head><body><h1>Two</h1></body></html>')
+          zf.writestr('OEBPS/content.opf', '''<?xml version="1.0" encoding="UTF-8"?>
+          <package version="3.0" xmlns="http://www.idpf.org/2007/opf" unique-identifier="id">
+            <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+              <dc:title>Demo Book</dc:title><dc:language>en</dc:language>
+            </metadata>
+            <manifest>
+              <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>
+              <item id="ch1" href="ch1.xhtml" media-type="application/xhtml+xml"/>
+              <item id="ch2" href="ch2.xhtml" media-type="application/xhtml+xml"/>
+            </manifest>
+            <spine><itemref idref="ch1"/><itemref idref="ch2"/></spine>
+          </package>''')
+          zf.close()
+          PY
+
+      - name: Docker check (JSON)
+        run: docker run --rm -i ourtool:latest --mode check --format json < sample.epub
+
+      - name: Docker split to tar
+        run: docker run --rm -i ourtool:latest --mode split < sample.epub > out.tar
+
+      - name: Docker validate tar from stdin
+        run: docker run --rm -i ourtool:latest --mode validate --input - < out.tar
+
+      - name: Docker split to directory with ignore
+        run: |
+          mkdir -p out
+          printf '2$\n' > .epubsplit-ignore
+          docker run --rm -i \
+            -v "$PWD/out":/out \
+            -v "$PWD":/work -w /work \
+            ourtool:latest --mode split --out /out --ignore-file /work/.epubsplit-ignore < sample.epub
+          ls -l out
+
