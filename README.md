@@ -61,3 +61,11 @@ Limitations
 Contributing
 - Run compile check: `python3 -m py_compile cli.py core.py __init__.py`.
 - CI runs smoke tests across Python 3.9–3.12 and Docker flows.
+
+Releases
+- Tag a version: `git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z`.
+- A GitHub Release is created automatically from tags via workflow.
+- Release notes are auto‑generated; edit on GitHub if needed.
+
+License
+- MIT — see the LICENSE file for full text.
