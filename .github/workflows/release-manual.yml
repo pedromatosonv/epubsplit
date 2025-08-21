@@ -51,11 +51,44 @@ jobs:
           git tag -a "${{ github.event.inputs.tag }}" -m "${{ github.event.inputs.tag }}" "${{ steps.ref.outputs.ref }}" || true
           git push --force origin "refs/tags/${{ github.event.inputs.tag }}"
 
-      - name: Create GitHub Release
+      - name: Prepare release notes from CHANGELOG (if notes empty)
+        id: notes
+        if: ${{ github.event.inputs.notes == '' }}
+        run: |
+          TAG='${{ github.event.inputs.tag }}'
+          FILE=CHANGELOG.md
+          if [ -f "$FILE" ]; then
+            awk -v t="$TAG" '
+              BEGIN{flag=0}
+              /^## / { if(flag==1) exit }
+              $0 ~ "^##[[:space:]]+(" t "|\\[" t "\\])" { flag=1; next }
+              flag==1 { print }
+            ' "$FILE" > RELEASE_NOTES.md || true
+            if [ -s RELEASE_NOTES.md ]; then
+              echo "found=1" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Create GitHub Release (provided notes)
+        if: ${{ github.event.inputs.notes != '' }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.tag }}
           prerelease: ${{ github.event.inputs.prerelease }}
-          generate_release_notes: ${{ github.event.inputs.notes == '' }}
           body: ${{ github.event.inputs.notes }}
 
+      - name: Create GitHub Release (CHANGELOG notes)
+        if: ${{ github.event.inputs.notes == '' && steps.notes.outputs.found == '1' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag }}
+          prerelease: ${{ github.event.inputs.prerelease }}
+          body_path: RELEASE_NOTES.md
+
+      - name: Create GitHub Release (auto notes)
+        if: ${{ github.event.inputs.notes == '' && steps.notes.outputs.found != '1' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag }}
+          prerelease: ${{ github.event.inputs.prerelease }}
+          generate_release_notes: true

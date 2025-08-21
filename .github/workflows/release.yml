@@ -15,9 +15,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create GitHub Release
+      - name: Prepare release notes from CHANGELOG
+        id: notes
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          FILE=CHANGELOG.md
+          if [ -f "$FILE" ]; then
+            awk -v t="$TAG" '
+              BEGIN{flag=0}
+              /^## / { if(flag==1) exit }
+              $0 ~ "^##[[:space:]]+(" t "|\\[" t "\\])" { flag=1; next }
+              flag==1 { print }
+            ' "$FILE" > RELEASE_NOTES.md || true
+            if [ -s RELEASE_NOTES.md ]; then
+              echo "found=1" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Create GitHub Release (CHANGELOG notes)
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') && steps.notes.outputs.found == '1'
+        with:
+          body_path: RELEASE_NOTES.md
+          draft: false
+
+      - name: Create GitHub Release (auto notes)
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/') && steps.notes.outputs.found != '1'
         with:
           generate_release_notes: true
           draft: false

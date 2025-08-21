@@ -67,6 +67,7 @@ Releases
 - A GitHub Release is created automatically from tags via workflow.
 - Release notes are auto‑generated; edit on GitHub if needed.
  - Or run from Actions UI: Manual Release workflow (enter tag, optional notes).
+ - See CHANGELOG.md for curated notes; release automation uses that when available.
 
 License
 - MIT — see the LICENSE file for full text.
